@@ -9,7 +9,7 @@ license = "MIT"
 documentation = "https://www.ipqualityscore.com/documentation/ip-reputation-database/rust"
 readme = "README.md"
 categories = ["database", "parser-implementations"]
-keywords = ["IPQualityScore", "ipqs", "ipaddress", "geodata", "risk scoring"]
+keywords = ["IPQualityScore", "ipqs", "ip", "geodata", "risk"]
 exclude = ["resources/*",]
 
 [dependencies]
