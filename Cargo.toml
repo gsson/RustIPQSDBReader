@@ -1,0 +1,23 @@
+# Copyright 2023 IPQualityScore LLC
+[package]
+name = "ipqs_db_reader"
+version = "1.0.0"
+edition = "2021"
+description = "IPQualityScore Rust Flat File IP Address Reputation Database Reader"
+repository = "https://github.com/IPQualityScore/RustIPQSDBReader"
+license = "MIT"
+documentation = "https://www.ipqualityscore.com/documentation/ip-reputation-database/rust"
+readme = "README.md"
+categories = ["database", "parser-implementations"]
+keywords = ["IPQualityScore", "ipqs", "ip address", "geodata", "risk scoring"]
+exclude = ["resources/*",]
+
+[dependencies]
+serde = { version = "1.0.160", features = ["derive"], optional = true }
+serde_json = { version = "1.0.96", optional = true }
+
+[features]
+default = ["json"]
+json = ["dep:serde", "dep:serde_json"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
