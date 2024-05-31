@@ -26,6 +26,7 @@ pub fn uvarint64(bytes: &[u8]) -> Result<u64, Box<dyn Error>> {
                 return Err("overflow".into());
             }
             x |= (*byte as u64) << s;
+            break;
         }
         x |= ((*byte & 0x7f) as u64) << s; // 127, or 0111 1111
         s += 7;
@@ -40,6 +41,16 @@ mod tests {
     #[test]
     fn it_works() -> Result<(), Box<dyn Error>> {
         let bytes: [u8; 3] = [0x93, 0x02, 0x00];
+        let answer = uvarint64(&bytes)?;
+        assert_eq!(answer, 275);
+
+        Ok(())
+    }
+
+    #[test]
+    fn long_read() -> Result<(), Box<dyn Error>> {
+        // Reading should stop after the first non-continuation byte
+        let bytes: [u8; 3] = [0x93, 0x02, 0x01];
         let answer = uvarint64(&bytes)?;
         assert_eq!(answer, 275);
 
