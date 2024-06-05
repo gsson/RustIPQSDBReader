@@ -2,7 +2,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufReader, Read, Seek, SeekFrom};
+use std::io::{BufReader, Cursor, Read, Seek, SeekFrom};
 use std::net::IpAddr;
 use std::path::Path;
 
@@ -30,8 +30,8 @@ const BINARY_DATA: u8 = 0b1000_0000;
 /// For details, please reference the official
 /// [IPQualityScore Flat File Database documentation](https://www.ipqualityscore.com/documentation/ip-reputation-database/overview)
 #[derive(Debug)]
-pub struct FileReader {
-    reader: BufReader<File>,
+pub struct FileReader<R> {
+    reader: R,
     record_bytes: usize,
     tree_start: u64,
     tree_end: u64,
@@ -41,7 +41,7 @@ pub struct FileReader {
     is_blacklist: bool,
 }
 
-impl FileReader {
+impl FileReader<BufReader<File>> {
     /// Opens the file at `Path` for reading and returns a FileReader interface
     /// ```
     /// use std::{error, path::PathBuf};
@@ -51,10 +51,24 @@ impl FileReader {
     /// let mut reader = FileReader::open(&path_buf)?;
     /// # Ok::<(), Box <dyn error::Error>>(())
     /// ```
-    pub fn open(file_path: &Path) -> Result<FileReader, Box<dyn Error>> {
+    pub fn open(file_path: &Path) -> Result<Self, Box<dyn Error>> {
         let file = File::open(file_path)?;
-        let mut reader = BufReader::new(file);
+        let reader = BufReader::new(file);
+        FileReader::from_reader(reader)
+    }
+}
 
+impl<T: AsRef<[u8]>> FileReader<Cursor<T>> {
+    /// Open a file reader from a vec of bytes
+    pub fn from_bytes(bytes: T) -> Result<Self, Box<dyn Error>> {
+        let reader = Cursor::new(bytes);
+        FileReader::from_reader(reader)
+    }
+}
+
+impl<R: Read + Seek> FileReader<R> {
+    /// Create file reader
+    pub fn from_reader(mut reader: R) -> Result<Self, Box<dyn Error>> {
         //---------------- METADATA BEGIN
 
         // first 11 bytes reserved for file metadata
@@ -265,10 +279,7 @@ impl FileReader {
         Err("invalid or nonexistent IP specified for lookup (EID 10)".into())
     }
 
-    fn get_ranged_string_value(
-        reader: &mut BufReader<File>,
-        offset: u64,
-    ) -> Result<String, Box<dyn Error>> {
+    fn get_ranged_string_value(reader: &mut R, offset: u64) -> Result<String, Box<dyn Error>> {
         reader.seek(SeekFrom::Start(offset))?;
         let mut size_buf: Vec<u8> = vec![0; 1];
         reader.read_exact(&mut size_buf)?;
@@ -311,6 +322,16 @@ mod tests {
         let mut path_buf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path_buf.push("resources/IPQualityScore-IP-Reputation-Database-IPv4.ipqs");
         FileReader::open(&path_buf)?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn from_bytes() -> Result<(), Box<dyn Error>> {
+        let mut path_buf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path_buf.push("resources/IPQualityScore-IP-Reputation-Database-IPv4.ipqs");
+        let bytes = std::fs::read(path_buf)?;
+        FileReader::from_bytes(bytes)?;
 
         Ok(())
     }

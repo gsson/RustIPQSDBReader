@@ -24,6 +24,18 @@ fn ipv6() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn ipv6_from_memory() -> Result<(), Box<dyn Error>> {
+    let mut path_buf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    path_buf.push("resources/IPQualityScore-IP-Reputation-Database-IPv6.ipqs");
+    let bytes = std::fs::read(path_buf)?;
+    let mut reader = FileReader::from_bytes(bytes)?;
+    let ip: IpAddr = IpAddr::V6(Ipv6Addr::from_str(IPV6_EXAMPLE)?);
+    let _ = reader.fetch(&ip)?;
+
+    Ok(())
+}
+
+#[test]
 fn specific_details() {
     let mut path_buf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path_buf.push("resources/IPQualityScore-IP-Reputation-Database-IPv4.ipqs");

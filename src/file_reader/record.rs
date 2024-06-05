@@ -6,6 +6,7 @@ use crate::file_reader::FileReader;
 use crate::utility;
 use std::error::Error;
 use std::fmt;
+use std::io::{Read, Seek};
 
 /// How in depth (strict) do you want this query to be? Higher values
 /// may provide a higher false-positive rate. We recommend starting at "0", the lowest strictness setting,
@@ -127,7 +128,10 @@ Public Access Point: {:#?}",
 
 impl Record {
     /// Parses the raw bytes at the leaf of the tree into a usable Record struct
-    pub(crate) fn parse(raw: Vec<u8>, file: &mut FileReader) -> Result<Record, Box<dyn Error>> {
+    pub(crate) fn parse<R: Read + Seek>(
+        raw: Vec<u8>,
+        file: &mut FileReader<R>,
+    ) -> Result<Record, Box<dyn Error>> {
         let mut current_byte = 0;
         let mut record = Record::default();
         // files with the binary data flag set have two additional bytes per record
