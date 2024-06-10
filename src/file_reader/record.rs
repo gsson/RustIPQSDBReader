@@ -27,35 +27,35 @@ pub enum Strictness {
 #[derive(Clone, Default, Debug)]
 #[cfg_attr(feature = "json", derive(serde::Serialize))]
 pub struct Record {
-    connection_type: String,
-    abuse_velocity: String,
-    country: Option<String>,
-    city: Option<String>,
-    region: Option<String>,
-    isp: Option<String>,
-    organization: Option<String>,
-    asn: Option<u64>,
-    timezone: Option<String>,
-    latitude: Option<f32>,
-    longitude: Option<f32>,
-    fraud_score: FraudScore,
-    is_proxy: Option<bool>,
-    is_vpn: Option<bool>,
-    is_tor: Option<bool>,
-    is_crawler: Option<bool>,
-    is_bot: Option<bool>,
-    recent_abuse: Option<bool>,
-    is_blacklisted: Option<bool>,
-    is_private: Option<bool>,
-    is_mobile: Option<bool>,
-    has_open_ports: Option<bool>,
-    is_hosting_provider: Option<bool>,
-    active_vpn: Option<bool>,
-    active_tor: Option<bool>,
-    public_access_point: Option<bool>,
+    pub(crate) connection_type: String,
+    pub(crate) abuse_velocity: String,
+    pub(crate) country: Option<String>,
+    pub(crate) city: Option<String>,
+    pub(crate) region: Option<String>,
+    pub(crate) isp: Option<String>,
+    pub(crate) organization: Option<String>,
+    pub(crate) asn: Option<u64>,
+    pub(crate) timezone: Option<String>,
+    pub(crate) latitude: Option<f32>,
+    pub(crate) longitude: Option<f32>,
+    pub(crate) fraud_score: FraudScore,
+    pub(crate) is_proxy: Option<bool>,
+    pub(crate) is_vpn: Option<bool>,
+    pub(crate) is_tor: Option<bool>,
+    pub(crate) is_crawler: Option<bool>,
+    pub(crate) is_bot: Option<bool>,
+    pub(crate) recent_abuse: Option<bool>,
+    pub(crate) is_blacklisted: Option<bool>,
+    pub(crate) is_private: Option<bool>,
+    pub(crate) is_mobile: Option<bool>,
+    pub(crate) has_open_ports: Option<bool>,
+    pub(crate) is_hosting_provider: Option<bool>,
+    pub(crate) active_vpn: Option<bool>,
+    pub(crate) active_tor: Option<bool>,
+    pub(crate) public_access_point: Option<bool>,
 
     #[cfg_attr(feature = "json", serde(skip_serializing))]
-    columns: Vec<Column>,
+    pub(crate) columns: Vec<Column>,
 }
 
 impl fmt::Display for Record {
@@ -428,7 +428,7 @@ impl Record {
 }
 
 /// Returns one of: Residential, Mobile, Corporate, Data Center, Education, or Unknown
-fn connection_type(byte: u8) -> &'static str {
+pub fn connection_type(byte: u8) -> &'static str {
     match byte & flag::CONNECTION_MASK {
         flag::CONNECTION_TYPE_THREE => "Residential", // 001
         flag::CONNECTION_TYPE_TWO => "Mobile",        // 010
@@ -441,7 +441,7 @@ fn connection_type(byte: u8) -> &'static str {
 
 /// How frequently the IP address is engaging in abuse across the IPQS threat network.
 /// Values can be "high", "medium", "low", or "none".
-fn abuse_velocity(byte: u8) -> &'static str {
+pub fn abuse_velocity(byte: u8) -> &'static str {
     match byte & flag::ABUSE_VELOCITY_MASK {
         flag::ABUSE_VELOCITY_TWO => "low",    // 01
         flag::ABUSE_VELOCITY_ONE => "medium", // 10
@@ -452,7 +452,7 @@ fn abuse_velocity(byte: u8) -> &'static str {
 
 #[derive(Clone, Default, Debug)]
 #[cfg_attr(feature = "json", derive(serde::Serialize))]
-struct FraudScore {
+pub(crate) struct FraudScore {
     pub strictness: [Option<u32>; 4],
 }
 
