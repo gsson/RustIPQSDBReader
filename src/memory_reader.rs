@@ -1,6 +1,7 @@
-use std::{net::IpAddr, path::Path};
+use std::{net::IpAddr, path::Path, sync::Arc};
 mod record;
 
+pub use record::ArcRecord;
 pub use record::Record;
 
 use crate::{
@@ -223,6 +224,13 @@ impl<T: AsRef<[u8]>> MemoryReader<T> {
         })
     }
 
+    /// See `fetch()` for more information
+    pub fn arc_fetch(self: &Arc<Self>, ip: &IpAddr) -> Result<ArcRecord<T>> {
+        let record_position = self.find(ip)?;
+        let record = ArcRecord::parse(Arc::clone(self), record_position);
+        Ok(record)
+    }
+
     /// Retrieve the record associated with `IpAddr`, if one exists
     /// ```
     /// # use std::path::PathBuf;
@@ -235,7 +243,13 @@ impl<T: AsRef<[u8]>> MemoryReader<T> {
     /// let record = reader.fetch(&ip)?;
     /// # Ok::<(), Box <dyn error::Error>>(())
     /// ```
-    pub fn fetch(&self, ip: &IpAddr) -> Result<record::Record<T>> {
+    pub fn fetch(&self, ip: &IpAddr) -> Result<Record<T>> {
+        let record_position = self.find(ip)?;
+        let record = Record::parse(self, record_position);
+        Ok(record)
+    }
+
+    fn find(&self, ip: &IpAddr) -> Result<usize> {
         if self.is_v6 && ip.is_ipv4() {
             return Err("attempted to fetch IPv4 record using IPv6 data file".into());
         }
@@ -282,8 +296,7 @@ impl<T: AsRef<[u8]>> MemoryReader<T> {
                     bit_position += 1;
                 }
                 NodeResult::Record(record_position) => {
-                    let record = Record::parse(self, record_position as usize)?;
-                    return Ok(record);
+                    return Ok(record_position as usize);
                 }
             }
         }

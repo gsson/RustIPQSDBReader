@@ -1,11 +1,30 @@
 use crate::binary_option as flag;
 use crate::binary_option::BinaryOption;
 use crate::memory_reader::MemoryReader;
-use crate::memory_reader::Result;
 use crate::Strictness;
 use std::fmt;
+use std::sync::Arc;
 
 #[derive(Clone)]
+pub struct ArcRecord<T> {
+    memory: Arc<MemoryReader<T>>,
+    offset: usize,
+}
+
+impl<T: AsRef<[u8]>> ArcRecord<T> {
+    pub(crate) fn parse(memory: Arc<MemoryReader<T>>, offset: usize) -> Self {
+        Self { memory, offset }
+    }
+
+    pub fn as_record(&self) -> Record<'_, T> {
+        Record {
+            memory: self.memory.as_ref(),
+            offset: self.offset,
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
 pub struct Record<'a, T> {
     memory: &'a MemoryReader<T>,
     offset: usize,
@@ -87,8 +106,8 @@ Public Access Point: {:#?}",
 impl<'a, T: AsRef<[u8]>> Record<'a, T> {
     /// Parses the raw bytes at the leaf of the tree into a usable Record struct
     #[inline]
-    pub(crate) fn parse(memory: &'a MemoryReader<T>, offset: usize) -> Result<Self> {
-        Ok(Self { memory, offset })
+    pub(crate) fn parse(memory: &'a MemoryReader<T>, offset: usize) -> Self {
+        Self { memory, offset }
     }
 
     #[inline(always)]
