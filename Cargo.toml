@@ -10,11 +10,19 @@ documentation = "https://www.ipqualityscore.com/documentation/ip-reputation-data
 readme = "README.md"
 categories = ["database", "parser-implementations"]
 keywords = ["IPQualityScore", "ipqs", "ip", "geodata", "risk"]
-exclude = ["resources/*",]
+exclude = ["resources/*"]
 
 [dependencies]
 serde = { version = "1.0.160", features = ["derive"], optional = true }
 serde_json = { version = "1.0.96", optional = true }
+
+[dev-dependencies]
+divan = "0.1"
+rand = "0.8"
+
+[[bench]]
+name = "fetch"
+harness = false
 
 [features]
 default = ["json"]
